@@ -15,6 +15,7 @@ mtx_t queue_lock;
 // TODO: Current buffer only supports 1 channel, need to make multi channel
 // buffer Probably best to implement with a linked list per loaded queue? or 2d
 // array. idk.
+// DONE :)
 
 // push from head read from tail
 int queue_head = 0;
@@ -85,15 +86,22 @@ int init_audio(void *arg) {
 void push_audio(AudioID id) {
   // grab lock to avoid race conditions
   mtx_lock(&queue_lock);
-  if (!(queue_len == MAX_AUDIO_QUEUE - 1)) {
+  if (queue_len < MAX_AUDIO_QUEUE - 1) {
     audio_queue[queue_head] = id;
     queue_len += 1;
     queue_head = (queue_head + 1) % MAX_AUDIO_QUEUE;
+    mtx_unlock(&queue_lock);
+  } else {
+    // handle deadlock
+    mtx_unlock(&queue_lock);
+    // could cause major performance issues if queue is fully filled. probably
+    // wont happen though.
+    push_audio(id);
   }
-  mtx_unlock(&queue_lock);
 }
 
-// reduce number of sound effects if it gets to gnarly, useful for things like scene/level change
+// reduce number of sound effects if it gets to gnarly, useful for things like
+// scene/level change
 void trim_audio() {
   // grab lock to avoid race conditions
   mtx_lock(&queue_lock);
