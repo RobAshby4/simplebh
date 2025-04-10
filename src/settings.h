@@ -1,0 +1,3 @@
+#define SCREENWIDTH 1280
+#define SCREENHEIGHT 800
+#define NUM_ENT 100
