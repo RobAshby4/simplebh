@@ -1,5 +1,6 @@
 #include "audio.h"
 #include "raylib.h"
+#include <stdio.h>
 #include <threads.h>
 #include <time.h>
 
@@ -9,13 +10,10 @@ char *sound_path[] = {"Text 1.wav", "Confirm 1.wav", "Fruit collect 1.wav"};
 SoundbankEntry *sound_bank[AUDIO_END];
 
 // circlular buffer
+// TODO: might be better to make a linked list queue? idk depends
 AudioID audio_queue[MAX_AUDIO_QUEUE];
 mtx_t queue_lock;
 
-// TODO: Current buffer only supports 1 channel, need to make multi channel
-// buffer Probably best to implement with a linked list per loaded queue? or 2d
-// array. idk.
-// DONE :)
 
 // push from head read from tail
 int queue_head = 0;
@@ -75,6 +73,7 @@ int init_audio(void *arg) {
     // free linked list for audio bank entry
     SoundbankEntry *entry = sound_bank[i];
     while (entry != NULL) {
+      printf("INFO: Unloading sound\n");
       SoundbankEntry *next_entry = entry->next_entry;
       deallocate_soundbank_entry(entry);
       entry = next_entry;
