@@ -1,3 +1,5 @@
 #define SCREENWIDTH 1280
 #define SCREENHEIGHT 800
 #define NUM_ENT 100
+#define NUM_LAYERS 256
+#define LAYER_MAX_ENT 1000

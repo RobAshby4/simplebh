@@ -1,27 +1,26 @@
-#include "raylib.h"
 #include "./entity.h"
-#include <string.h>
+#include "raylib.h"
 #include <stdio.h>
+#include <string.h>
 
-Entity* allocate_entity(const char* name, const char* texture_path, int xpos, int ypos) {
-    // grab name_len to make life easy
-    int name_len = strnlen(name, 100) + 1;
+int entity_id = 0;
 
-    // allocate entity and all of entitys fields
-    Entity *new_entity = (Entity *) MemAlloc(sizeof(Entity));
-    new_entity->name = MemAlloc(name_len);
-    strncpy(new_entity->name, name, name_len);
-    new_entity->default_texture = MemAlloc(sizeof(Texture));
-    *(new_entity->default_texture) = LoadTexture(texture_path);
-    new_entity->xpos = xpos;
-    new_entity->ypos = ypos;
-
-    return new_entity;
+Entity *allocate_entity(const char *name, TextureID texture, int xpos,
+                        int ypos, int layer) {
+  // allocate entity and all of entitys fields
+  Entity *new_entity = (Entity *)MemAlloc(sizeof(Entity));
+  int name_len = strnlen(name, 100) + 1;
+  new_entity->name = MemAlloc(name_len);
+  strncpy(new_entity->name, name, name_len);
+  new_entity->default_texture = texture;
+  new_entity->xpos = xpos;
+  new_entity->ypos = ypos;
+  new_entity->layer = layer;
+  new_entity->id = ++entity_id;
+  return new_entity;
 }
 
-void deallocate_entity(Entity* entity) {
-    UnloadTexture(*(entity->default_texture));
-    MemFree(entity->default_texture);
-    MemFree(entity->name);
-    MemFree(entity);
+void deallocate_entity(Entity *entity) {
+  MemFree(entity->name);
+  MemFree(entity);
 }
