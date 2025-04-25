@@ -18,7 +18,7 @@ int init_io(void* args) {
 
 void display_loop() {
   // game loop
-
+  SetTargetFPS(60);
   while (!WindowShouldClose()) // run the loop untill the user presses ESCAPE or
                                // presses the Close button on the window
   {

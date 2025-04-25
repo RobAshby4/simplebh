@@ -31,7 +31,6 @@ int main() {
   thrd_create(&io_thread, init_io, NULL);
   thrd_create(&audio_thread, init_audio, NULL);
 
-  SetTargetFPS(60);
   thrd_join(io_thread, NULL);
   thrd_join(audio_thread, NULL);
   return 0;
