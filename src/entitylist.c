@@ -1,8 +1,7 @@
 #include "entitylist.h"
 #include "raylib.h"
+#include <stdbool.h>
 #include <threads.h>
-
-EntityQueue *entity_layers[NUM_LAYERS];
 
 Texture LoadedTextures;
 
@@ -10,16 +9,20 @@ mtx_t queue_lock;
 
 // TODO: make it able to support multiple entity queues;
 
-EntityQueue **init_entity_queue() {
-  mtx_lock(&queue_lock);
+EntityQueue **alloc_entity_queue() {
+  EntityQueue **entity_layers =
+      (EntityQueue **)MemAlloc(sizeof(EntityQueue *) * NUM_LAYERS);
   for (int i = 0; i < NUM_LAYERS; i++) {
     entity_layers[i] = NULL;
   }
-  mtx_unlock(&queue_lock);
   return entity_layers;
 }
 
-void add_entity(Entity *entity) {
+void dealloc_entity_queue(EntityQueue** entity_layers) {
+  flush_entity_queue(entity_layers);
+}
+
+void add_entity(Entity *entity, EntityQueue **entity_layers) {
   mtx_lock(&queue_lock);
   EntityQueue *queue_node = MemAlloc(sizeof(EntityQueue));
   queue_node->entity = entity;
@@ -39,10 +42,13 @@ void add_entity(Entity *entity) {
   mtx_unlock(&queue_lock);
 }
 
-int remove_entity(Entity *entity) {
-  mtx_lock(&queue_lock);
+int remove_entity(Entity *entity, EntityQueue **entity_layers, bool locking) {
+  if (locking)
+    mtx_lock(&queue_lock);
   if (entity_layers[entity->layer] == NULL) {
     printf("Entity not found for removal: %s\n", entity->name);
+    if (locking)
+      mtx_unlock(&queue_lock);
     return -1;
   }
   EntityQueue *head = entity_layers[entity->layer];
@@ -50,21 +56,40 @@ int remove_entity(Entity *entity) {
     // if head is the match, shift the head;
     entity_layers[entity->layer] = head->next_ent_queue;
     MemFree(head);
+    if (locking)
+      mtx_unlock(&queue_lock);
     return 0;
   } else {
     // if head is not the match, check until found and patch
     while (head->next_ent_queue != NULL) {
-      EntityQueue* temp = head->next_ent_queue;
+      EntityQueue *temp = head->next_ent_queue;
       if (entity->id == temp->entity->id) {
         head->next_ent_queue = temp->next_ent_queue;
         MemFree(temp);
+        if (locking)
+          mtx_unlock(&queue_lock);
         return 0;
       } else {
         head = temp;
       }
     }
     printf("Entity not found for removal in entire list: %s\n", entity->name);
+    if (locking)
+      mtx_unlock(&queue_lock);
     return -2;
   }
+  if (locking)
+    mtx_unlock(&queue_lock);
+  return 0;
+}
+
+int flush_entity_queue(EntityQueue **entity_layers) {
+  mtx_lock(&queue_lock);
+  for (int i = 0; i < NUM_LAYERS; i++) {
+    while (entity_layers[i] != NULL) {
+      remove_entity(entity_layers[i]->entity, entity_layers, false);
+    }
+  }
   mtx_unlock(&queue_lock);
+  return 0;
 }

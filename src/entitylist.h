@@ -7,8 +7,12 @@ typedef struct EntityQueue {
   struct EntityQueue *next_ent_queue;
 } EntityQueue;
 
-EntityQueue **init_entity_queue();
+EntityQueue **alloc_entity_queue();
 
-void add_entity(Entity* entity);
+void dealloc_entity_queue(EntityQueue **entity_layers);
 
-int remove_entity(Entity* entity);
+void add_entity(Entity* entity, EntityQueue** entity_layers);
+
+int remove_entity(Entity *entity, EntityQueue **entity_layers, bool locking);
+
+int flush_entity_queue(EntityQueue **entity_layers);

@@ -1,7 +1,7 @@
 #include "raylib.h"
-#include "entity.h"
 #include "audio.h"
 #include "io.h"
+#include "entitylist.h"
 #include <stdio.h>
 
 
@@ -16,11 +16,19 @@ int init_io(void* args) {
   return 0;
 }
 
+int render_entities() {
+
+  return 0;
+}
+
 void display_loop() {
-  // game loop
   SetTargetFPS(60);
-  while (!WindowShouldClose()) // run the loop untill the user presses ESCAPE or
-                               // presses the Close button on the window
+  EntityQueue** entities = alloc_entity_list();
+  for (int i = 0; i < NUM_LAYERS; i++) {
+    // make entities and add them to the entityqueue
+  }
+
+  while (!WindowShouldClose())
   {
 
     // drawing
